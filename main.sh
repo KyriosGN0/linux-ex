@@ -1,13 +1,12 @@
 #! /bin/bash
-# there is an alternate way to redirect the out put 
-# https://unix.stackexchange.com/questions/42728/what-does-31-12-23-do-in-a-script
-# go here to see that way and understand it, i don't get that way tho
 
 
 function storage() {
 	msg=$(bash -c $1)
-    	echo $msg
-    	#whiptail --title $1 --msgbox $msg 15 60 4
+    	whiptail --title "$1" --msgbox "$msg" 50 110 
+}
+function networking(){
+
 }
 
 function advancedMenu() {
@@ -26,7 +25,11 @@ function advancedMenu() {
         ;;
         2)
             
-            whiptail --title "networking" --msgbox "You chose option 2. Exit status $?" 8 45
+            NET=$(whiptail --title "networking" --menu --fb "choose what is it you want to do" 15 60 4 \
+		    "1" "check open ports" \
+		    "2" "watch tcp wireshark style" \
+		    "3" "craft and send packet" 3>&1 1>&2 2>&3)
+	    networking $NET
         ;;
         3)
             echo $ADVSEL
