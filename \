@@ -1,40 +1,17 @@
 #! /bin/bash
 
-
-function repo(){
-	packs=$(yum list installed | grep @$1 | awk '{print $1 " " $2}')
-	package=$(whiptail --title "packages in $1" --menu --noitem "please choose a package" 0 0 0 \
-		${packs[@]} 3>&1 1>&2 2>&3)
-	rpmpack=$(rpm -ql $package | grep /usr/bin | awk -F /  '{print $4}')
-	ps aux > ps
-	proc=$(cat  ps| grep $rpmpack)
-	daemon=$(ps aux | awk '{print $11}' | tr / '\n' | grep d$ | sort | uniq | grep $rpmpack)
-	whiptail --title "process" --msgbox "$proc" 8 78
-	whiptail --title "daemons" --msgbox "$daemon" 8 78
-}
-
 function packet(){
-	if [ "$1" = "icmp" ]; then
+	if $1 == "icmp";then
 		ip=$(whiptail --title "icmp packet" --inputbox "please enter the dest ip" 8 39 3>&1 1>&2 2>&3)
 		ping -c 4 $ip > icmp
 		res=$(cat icmp)
 		whiptail --title "icmp result" --msgbox "$res" 45 90
-	elif [ "$1" = "dns" ]; then
-		addr=$(whiptail --title "dns packet" --inputbox "please enter the url" 8 39 3>&1 1>&2 2>&3)
-		nslookup $addr > dns
-		res=$(cat dns)
-		whiptail --title "dns result" --msgbox "$res" 45 90
-	elif [ "$1" = "http" ]; then
-		addr=$(whiptail --title "http packet" --inputbox "please enter the url without www" 8 39 3>&1 1>&2 2>&3)
-		curl -I http://www.$addr > http
-		res=$(cat http)
-                whiptail --title "http result" --msgbox "$res" 45 90
 	fi
 }
 
 function storage() {
 	text=$(bash -c $1)
-    	whiptail --title "$1" --msgbox "$text" 50 110
+    	whiptail --title "$1" --msgbox "$text" 50 110 
 }
 function networking(){
 	case $1 in
@@ -50,10 +27,10 @@ function networking(){
 				"icmp" 'send a ping packet' \
 				"dns" 'get the ip' \
 				"http" 'send an http request' 3>&1 1>&2 2>&3)
-			#TODO implement tcp/udp
+			echo $proto
 			packet $proto
-		;;
-		esac
+		;;	
+		esac		
 }
 
 function advancedMenu() {
@@ -63,15 +40,15 @@ function advancedMenu() {
         "3" "inpect you dnf/yum/apt repos" 3>&1 1>&2 2>&3)
     case $CHOMEN in
         1)
-
+            
             STO=$(whiptail --title "storage" --menu --fb "choose the level you want to view" 15 60 4 \
 		    "pvs" "physical discs" \
 		    "vgs" "volume groups" \
 		    "lvs" "logical volume" 3>&1 1>&2 2>&3)
-	    storage $STO
+	    storage $STO	
         ;;
         2)
-
+            
             NET=$(whiptail --title "networking" --menu --fb "choose what is it you want to do" 15 60 4 \
 		    "1" "check open ports" \
 		    "2" "watch tcp wireshark style" \
@@ -79,12 +56,8 @@ function advancedMenu() {
 	    networking $NET
         ;;
         3)
-
-	    repolist=($(yum repolist | awk ' NR > 1 {print $1 " "  "i-really-do-not-like-bash"}'))
-	    YUM=$(whiptail --title "repo control" --menu --noitem "please choose repo"  50 60 15 \
-		    ${repolist[@]} 3>&1 1>&2 2>&3)
-				echo $YUM
-	    repo $YUM
+            echo $ADVSEL
+            #whiptail --title "Option 1" --msgbox "You chose option 3. Exit status $?" 8 45
         ;;
     esac
 }
