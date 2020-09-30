@@ -10,7 +10,7 @@ function repo(){
 	if [ -z "$rpmpack" ]; then
 		whiptail --title "ERROR" --msgbox "there was an error, this program is kinda shit" 45 90
 	else
-		proc=$(cat ps.txt| grep "$rpmpack")
+		proc=$(head -n 1 ps.txt | awk '{print $1 " " $2 " " $8 " " $9 " " $11}'; cat ps.txt| grep "$rpmpack" |awk '{print $1 " " $2 " " $8 " " $9 " " $11}')
 		if [ -z "$proc" ]; then
 			whiptail --title "process" --msgbox "there are no processes active from this package, or i couldn't find them." 45 90
 		else
@@ -22,6 +22,8 @@ function repo(){
 		else
 			whiptail --title "daemons" --msgbox "$daemon" 45 90
 		fi
+		place=$(rpm -ql $package)
+		whiptail --title "package place" --scrolltext --msgbox "$place" 45 90
 	fi
 }
 
@@ -51,8 +53,15 @@ function storage() {
 function networking(){
 	case $1 in
 		1)
-			ports=$(ss -tulw | grep LISTEN | awk '{print $5}' | awk -F : '{gsub(/[^0-9 ]/,"",$2); print $2}'| uniq)
-			whiptail --title "open ports" --msgbox "$ports" 45 90
+			ports=$(ss -tulw | grep LISTEN | awk '{print $5}' | awk -F : '{gsub(/[^0-9 ]/,"",$2); print $2 }'| uniq | awk 'NF > 0 {print $1 " " "i-bash"}')
+			socket=$(whiptail --title "open ports" --menu --noitem "chose open port to write" 45 90 0 \
+				${ports[@]} 3>&1 1>&2 2>&3)
+				if echo "sending some data $(uname -n)" 2>/dev/null > /dev/tcp/127.0.0.1/"$socket"
+				then
+					whiptail --title "success" --msgbox "the data was sent! port is open!" 17 50
+				else
+					whiptail --title "success" --msgbox "the data was not send, something is wrong?" 45 90
+				fi
 		;;
 		2)
 			bash -c 'python net.py'
