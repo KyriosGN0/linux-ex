@@ -5,12 +5,24 @@ function repo(){
 	packs=$(yum list installed | grep @$1 | awk '{print $1 " " $2}')
 	package=$(whiptail --title "packages in $1" --menu --noitem "please choose a package" 0 0 0 \
 		${packs[@]} 3>&1 1>&2 2>&3)
-	rpmpack=$(rpm -ql $package | grep /usr/bin | awk -F /  '{print $4}')
-	ps aux > ps
-	proc=$(cat  ps| grep $rpmpack)
-	daemon=$(ps aux | awk '{print $11}' | tr / '\n' | grep d$ | sort | uniq | grep $rpmpack)
-	whiptail --title "process" --msgbox "$proc" 8 78
-	whiptail --title "daemons" --msgbox "$daemon" 8 78
+	rpmpack=$(rpm -ql $package | egrep '/usr/bin|/usr/sbin|/opt' | awk -F /  '{print $4}')
+	ps aux > ps.txt
+	if [ -z "$rpmpack" ]; then
+		whiptail --title "ERROR" --msgbox "there was an error, this program is kinda shit" 45 90
+	else
+		proc=$(cat ps.txt| grep "$rpmpack")
+		if [ -z "$proc" ]; then
+			whiptail --title "process" --msgbox "there are no processes active from this package, or i couldn't find them." 45 90
+		else
+			whiptail --title "process" --scrolltext --msgbox  "$proc" 45 90
+		fi
+		daemon=$(ps aux | awk '{print $11}' | tr / '\n' | grep d$ | sort | uniq | grep "$rpmpack")
+		if [ -z "$daemon" ]; then
+			whiptail --title "daemons" --msgbox "there are no daemons active from this package, or i couldn't find them." 45 90
+		else
+			whiptail --title "daemons" --msgbox "$daemon" 45 90
+		fi
+	fi
 }
 
 function packet(){
@@ -83,7 +95,7 @@ function advancedMenu() {
 	    repolist=($(yum repolist | awk ' NR > 1 {print $1 " "  "i-really-do-not-like-bash"}'))
 	    YUM=$(whiptail --title "repo control" --menu --noitem "please choose repo"  50 60 15 \
 		    ${repolist[@]} 3>&1 1>&2 2>&3)
-				echo $YUM
+
 	    repo $YUM
         ;;
     esac
