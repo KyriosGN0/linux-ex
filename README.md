@@ -1,5 +1,5 @@
 a linux tool that interacts with lvm, networking and process world of linux
-logical volume level is missing some features.
+package inspection is not 100 percent, hacky solution 
 written almost entirely in bash with whiptaill- only tcp traffic feature is written in python
 
 possisble TODO
