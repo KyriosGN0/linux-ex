@@ -132,11 +132,48 @@ function storage() {
 				check $?
 			fi
 		elif [ "$1" = "lvs" ]; then
-			Name=$(whiptail --title "lv name" --inputbox "enter the name for the logical volume" 8 39 3>&1 1>&2 2>&3)
-			vg=$(whiptail --title "vg name" --inputbox "enter the vg name in which to create the lv" 8 39 3>&1 1>&2 2>&3)
-			size=$(whiptail --title "lv size" --inputbox "enter the size of the lv with the format like so 2m or 2G" 8 39 3>&1 1>&2 2>&3)
-			lvcreate -L "$size" -n "$Name" "$vg"
-			check $1
+			choice=$(whiptail --title "manage $1" --menu --fb "please choose what to do" 45 90 4 \
+                                "1" "create lv" \
+                                "2" "extend lv"
+                                "3" "reduce lv" \
+                                "4" "rename lv"\
+                                "5" "resize lv" 3>&1 1>&2 2>&3)
+			if [ "$choice" = 1 ]; then
+				Name=$(whiptail --title "lv name" --inputbox "enter the name for the logical volume" 8 39 3>&1 1>&2 2>&3)
+				vg=$(whiptail --title "vg name" --inputbox "enter the vg name in which to create the lv" 8 39 3>&1 1>&2 2>&3)
+				size=$(whiptail --title "lv size" --inputbox "enter the size of the lv with the format like so 2m or 2G" 8 39 3>&1 1>&2 2>&3)
+				lvcreate -L "$size" -n "$Name" "$vg"
+				check $1 
+			elif [ "$choice" = 2 ];then
+				lvs=$(bash -c $1 | awk ' NR >1 {print $1 " " "g"}')
+                                lv=$(whiptail --title "$1" --menu --noitem "choose the lv to extend" 45 90 4 \
+                                        ${lvs[@]} 3>&1 1>&2 2>&3)
+				size=$(whiptail --title "lv size" --inputbox "enter the size of the lv with the format like so 2m or 2G" 8 39 3>&1 1>&2 2>&3)
+				lvextend -L $size $lv
+				check $?
+			elif [ "choice" = 3 ];then
+				lvs=$(bash -c $1 | awk ' NR >1 {print $1 " " "g"}')
+                                lv=$(whiptail --title "$1" --menu --noitem "choose the lv to reduce" 45 90 4 \
+                                        ${lvs[@]} 3>&1 1>&2 2>&3)
+                                size=$(whiptail --title "lv size" --inputbox "enter the size of the lv with the format like so 2m or 2G" 8 39 3>&1 1>&2 2>&3)
+                                lvreduce -L $size $lv
+                                check $?
+			elif [ "choice" = 4 ];then
+				lvs=$(bash -c $1 | awk ' NR >1 {print $1 " " "g"}')
+                                lv=$(whiptail --title "$1" --menu --noitem "choose the lv to reduce" 45 90 4 \
+                                        ${lvs[@]} 3>&1 1>&2 2>&3)
+		                name=$(whiptail --title "new name" --inputbox "enter new name please" 45 90 3>&1 1>&2 2>&3)
+                                lvrename $lv $name
+                                check $?
+			else 
+				lvs=$(bash -c $1 | awk ' NR >1 {print $1 " " "g"}')
+                                lv=$(whiptail --title "$1" --menu --noitem "choose the lv to extend" 45 90 4 \
+                                        ${lvs[@]} 3>&1 1>&2 2>&3)
+                                size=$(whiptail --title "lv size" --inputbox "enter the size of the lv with the format like so -2m or +2G" 8 39 3>&1 1>&2 2>&3)
+                                lvresize -L $size $lv
+                                check $?
+			fi
+
 		fi
 	fi
 }
