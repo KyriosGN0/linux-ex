@@ -30,6 +30,9 @@ layout = [
         [sg.Text('Enter number of second to capture tcp packets'),sg.InputText()],
         [sg.Checkbox('no dns lookup', change_submits = True, enable_events=True, default='0',key='dns'),
         sg.Checkbox('no promisicus mode', change_submits = True, enable_events=True, default='0', key='pmode'),
+        sg.Checkbox("print packets in ascii", change_submits = True, enable_events=True, default='0', key="ascii"),
+        sg.Checkbox("print 2nd layer info", change_submits = True, enable_events=True, default='0', key="data_link"),
+        sg.Checkbox("be very verbose", change_submits = True, enable_events=True, default='0', key="verbose"),
         sg.Checkbox('no port convertion', change_submits = True, enable_events=True, default='0', key='port')],
         [sg.Button('DUMP THE TCP')],
         [sg.Output(size=(110, 20))]
@@ -49,4 +52,10 @@ while True:
             cmd = cmd + " " + '-p'
         if values['port']==True:
             cmd = cmd + " " + '-nn'
+        if values['ascii']==True:
+            cmd = cmd + " " + '-a'
+        if values['data_link']==True:
+            cmd = cmd + " " + '-e'
+        if values['verbose']==True:
+            cmd = cmd + " " + '-vvv'
         tcpdump(cmd)
